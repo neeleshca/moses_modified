@@ -5,7 +5,6 @@ from .metrics import get_all_metrics, \
                      fraction_unique, \
                      fraction_valid, \
                      remove_invalid, \
-                     FCDMetric, \
                      SNNMetric, \
                      FragMetric, \
                      ScafMetric
@@ -27,7 +26,6 @@ __all__ = ['get_all_metrics',
            'logP',
            'SA',
            'QED',
-           'FCDMetric',
            'SNNMetric',
            'FragMetric',
            'ScafMetric']

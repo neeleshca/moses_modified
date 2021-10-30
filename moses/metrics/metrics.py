@@ -2,7 +2,7 @@ import warnings
 from multiprocessing import Pool
 import numpy as np
 from scipy.spatial.distance import cosine as cos_distance
-from fcd_torch import FCD as FCDMetric
+# from fcd_torch import FCD as FCDMetric
 from scipy.stats import wasserstein_distance
 
 from moses.dataset import get_dataset, get_statistics
@@ -19,6 +19,7 @@ def get_all_metrics(gen, k=None, n_jobs=1,
                     test=None, test_scaffolds=None,
                     ptest=None, ptest_scaffolds=None,
                     train=None):
+    print("hello 3")
     """
     Computes all available metrics between test (scaffold test)
     and generated sets of SMILES.
@@ -65,16 +66,17 @@ def get_all_metrics(gen, k=None, n_jobs=1,
                 "statistics for default test set")
         test = get_dataset('test')
         ptest = get_statistics('test')
+    # print(ptest)
 
-    if test_scaffolds is None:
-        if ptest_scaffolds is not None:
-            raise ValueError(
-                "You cannot specify custom scaffold test "
-                "statistics for default scaffold test set")
-        test_scaffolds = get_dataset('test_scaffolds')
-        ptest_scaffolds = get_statistics('test_scaffolds')
+    # if test_scaffolds is None:
+    #     if ptest_scaffolds is not None:
+    #         raise ValueError(
+    #             "You cannot specify custom scaffold test "
+    #             "statistics for default scaffold test set")
+    #     test_scaffolds = get_dataset('test_scaffolds')
+    #     ptest_scaffolds = get_statistics('test_scaffolds')
 
-    train = train or get_dataset('train')
+    # train = train or get_dataset('train')
 
     if k is None:
         k = [1000, 10000]
@@ -94,41 +96,49 @@ def get_all_metrics(gen, k=None, n_jobs=1,
     for _k in k:
         metrics['unique@{}'.format(_k)] = fraction_unique(gen, _k, pool)
 
+    print("start of ptest_intermediate")
     if ptest is None:
         ptest = compute_intermediate_statistics(test, n_jobs=n_jobs,
                                                 device=device,
                                                 batch_size=batch_size,
                                                 pool=pool)
-    if test_scaffolds is not None and ptest_scaffolds is None:
-        ptest_scaffolds = compute_intermediate_statistics(
-            test_scaffolds, n_jobs=n_jobs,
-            device=device, batch_size=batch_size,
-            pool=pool
-        )
+    # print("start of ptest_scaffolds_intermediate")                                                
+    # if test_scaffolds is not None and ptest_scaffolds is None:
+    #     ptest_scaffolds = compute_intermediate_statistics(
+    #         test_scaffolds, n_jobs=n_jobs,
+    #         device=device, batch_size=batch_size,
+    #         pool=pool
+    #     )
+    print("start of metrics")
     mols = mapper(pool)(get_mol, gen)
     kwargs = {'n_jobs': pool, 'device': device, 'batch_size': batch_size}
     kwargs_fcd = {'n_jobs': n_jobs, 'device': device, 'batch_size': batch_size}
-    metrics['FCD/Test'] = FCDMetric(**kwargs_fcd)(gen=gen, pref=ptest['FCD'])
+    # metrics['FCD/Test'] = FCDMetric(**kwargs_fcd)(gen=gen, pref=ptest['FCD'])
+    print("start of metrics1")
     metrics['SNN/Test'] = SNNMetric(**kwargs)(gen=mols, pref=ptest['SNN'])
+    print("SNN DONE")
     metrics['Frag/Test'] = FragMetric(**kwargs)(gen=mols, pref=ptest['Frag'])
+    print("Frag DONE")
     metrics['Scaf/Test'] = ScafMetric(**kwargs)(gen=mols, pref=ptest['Scaf'])
-    if ptest_scaffolds is not None:
-        metrics['FCD/TestSF'] = FCDMetric(**kwargs_fcd)(
-            gen=gen, pref=ptest_scaffolds['FCD']
-        )
-        metrics['SNN/TestSF'] = SNNMetric(**kwargs)(
-            gen=mols, pref=ptest_scaffolds['SNN']
-        )
-        metrics['Frag/TestSF'] = FragMetric(**kwargs)(
-            gen=mols, pref=ptest_scaffolds['Frag']
-        )
-        metrics['Scaf/TestSF'] = ScafMetric(**kwargs)(
-            gen=mols, pref=ptest_scaffolds['Scaf']
-        )
-
+    print(metrics)
+    print("Scaf DONE")
+    # if ptest_scaffolds is not None:
+    #     metrics['FCD/TestSF'] = FCDMetric(**kwargs_fcd)(
+    #         gen=gen, pref=ptest_scaffolds['FCD']
+    #     )
+    #     metrics['SNN/TestSF'] = SNNMetric(**kwargs)(
+    #         gen=mols, pref=ptest_scaffolds['SNN']
+    #     )
+    #     metrics['Frag/TestSF'] = FragMetric(**kwargs)(
+    #         gen=mols, pref=ptest_scaffolds['Frag']
+    #     )
+    #     metrics['Scaf/TestSF'] = ScafMetric(**kwargs)(
+    #         gen=mols, pref=ptest_scaffolds['Scaf']
+    #     )
+    print("Start of div")
     metrics['IntDiv'] = internal_diversity(mols, pool, device=device)
     metrics['IntDiv2'] = internal_diversity(mols, pool, device=device, p=2)
-    metrics['Filters'] = fraction_passes_filters(mols, pool)
+    # metrics['Filters'] = fraction_passes_filters(mols, pool)
 
     # Properties
     for name, func in [('logP', logP), ('SA', SA),
@@ -137,8 +147,8 @@ def get_all_metrics(gen, k=None, n_jobs=1,
         metrics[name] = WassersteinMetric(func, **kwargs)(
             gen=mols, pref=ptest[name])
 
-    if train is not None:
-        metrics['Novelty'] = novelty(mols, train, pool)
+    # if train is not None:
+    #     metrics['Novelty'] = novelty(mols, train, pool)
     enable_rdkit_log()
     if close_pool:
         pool.close()
@@ -160,14 +170,21 @@ def compute_intermediate_statistics(smiles, n_jobs=1, device='cpu',
             close_pool = True
         else:
             pool = 1
+    print("LENGTH", len(smiles))
     statistics = {}
     mols = mapper(pool)(get_mol, smiles)
     kwargs = {'n_jobs': pool, 'device': device, 'batch_size': batch_size}
     kwargs_fcd = {'n_jobs': n_jobs, 'device': device, 'batch_size': batch_size}
-    statistics['FCD'] = FCDMetric(**kwargs_fcd).precalc(smiles)
+    # statistics['FCD'] = FCDMetric(**kwargs_fcd).precalc(smiles)
+    print("START INTEREMEDIAET SNN")
     statistics['SNN'] = SNNMetric(**kwargs).precalc(mols)
+    print("START INTEREMEDIAET FRAG")
     statistics['Frag'] = FragMetric(**kwargs).precalc(mols)
+    print("START INTEREMEDIAET SCAF")    
     statistics['Scaf'] = ScafMetric(**kwargs).precalc(mols)
+    # print(statistics)
+    print("START INTEREMEDIAET normal metrics")
+    
     for name, func in [('logP', logP), ('SA', SA),
                        ('QED', QED),
                        ('weight', weight)]:
@@ -315,6 +332,9 @@ class FragMetric(Metric):
         return {'frag': compute_fragments(mols, n_jobs=self.n_jobs)}
 
     def metric(self, pref, pgen):
+        # print("FRAG")
+        # print("PREF", pref['frag'])
+        # print("PGEN", pgen['frag'])
         return cos_similarity(pref['frag'], pgen['frag'])
 
 

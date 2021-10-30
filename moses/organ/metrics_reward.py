@@ -4,13 +4,13 @@ import numpy as np
 
 from moses.metrics import remove_invalid, \
                           fraction_passes_filters, internal_diversity, \
-                          FCDMetric, SNNMetric, FragMetric, ScafMetric, \
+                          SNNMetric, FragMetric, ScafMetric, \
                           WassersteinMetric, logP, QED, SA, weight
 from moses.utils import mapper, get_mol
 
 
 class MetricsReward:
-    supported_metrics = ['fcd', 'snn', 'fragments', 'scaffolds',
+    supported_metrics = ['snn', 'fragments', 'scaffolds',
                          'internal_diversity', 'filters',
                          'logp', 'sa', 'qed', 'weight']
 

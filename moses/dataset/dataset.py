@@ -29,6 +29,7 @@ def get_dataset(split='train'):
             f"Available splits: {AVAILABLE_SPLITS}")
     path = os.path.join(base_path, 'data', split+'.csv.gz')
     smiles = pd.read_csv(path, compression='gzip')['SMILES'].values
+    print("Length of smiles", len(smiles))
     return smiles
 
 
