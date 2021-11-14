@@ -76,7 +76,7 @@ def get_all_metrics(gen, k=None, n_jobs=1,
     #     test_scaffolds = get_dataset('test_scaffolds')
     #     ptest_scaffolds = get_statistics('test_scaffolds')
 
-    # train = train or get_dataset('train')
+    train = train or get_dataset('train')
 
     if k is None:
         k = [1000, 10000]
@@ -147,8 +147,8 @@ def get_all_metrics(gen, k=None, n_jobs=1,
         metrics[name] = WassersteinMetric(func, **kwargs)(
             gen=mols, pref=ptest[name])
 
-    # if train is not None:
-    #     metrics['Novelty'] = novelty(mols, train, pool)
+    if train is not None:
+        metrics['Novelty'] = novelty(mols, train, pool)
     enable_rdkit_log()
     if close_pool:
         pool.close()
