@@ -322,8 +322,9 @@ def cos_similarity(ref_counts, gen_counts):
     if len(ref_counts) == 0 or len(gen_counts) == 0:
         return np.nan
     keys = np.unique(list(ref_counts.keys()) + list(gen_counts.keys()))
-    ref_vec = np.array([ref_counts.get(k, 0) for k in keys])
-    gen_vec = np.array([gen_counts.get(k, 0) for k in keys])
+    print("USING UINT64")
+    ref_vec = np.array([ref_counts.get(k, 0) for k in keys], dtype = np.uint64)
+    gen_vec = np.array([gen_counts.get(k, 0) for k in keys], dtype = np.uint64)
     return 1 - cos_distance(ref_vec, gen_vec)
 
 
